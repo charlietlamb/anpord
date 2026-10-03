@@ -11,6 +11,14 @@ const named = <K extends string>(
 ) => lazy(async () => ({ default: (await load())[name] }));
 
 export const dialogRegistry: DialogRegistry<DialogMap> = {
+  addSubscription: named(
+    () => import("@/components/dialog/add-subscription-dialog"),
+    "AddSubscriptionDialog"
+  ),
+  addVariables: named(
+    () => import("@/components/dialog/add-variables-dialog"),
+    "AddVariablesDialog"
+  ),
   apiKeyCreated: named(
     () => import("@/components/dialog/api-key-created-dialog"),
     "ApiKeyCreatedDialog"
@@ -30,6 +38,10 @@ export const dialogRegistry: DialogRegistry<DialogMap> = {
   createOrganization: named(
     () => import("@/components/dialog/create-organization-dialog"),
     "CreateOrganizationDialog"
+  ),
+  editVariable: named(
+    () => import("@/components/dialog/edit-variable-dialog"),
+    "EditVariableDialog"
   ),
   editVersion: named(
     () => import("@/components/dialog/edit-version-dialog"),

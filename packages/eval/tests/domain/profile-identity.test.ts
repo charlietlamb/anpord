@@ -11,6 +11,7 @@ const profile: ProfileContent = {
   install: null,
   run: null,
   systemPrompt: "You are the sample agent.\n",
+  variables: null,
 };
 
 const HEX_32 = /^[0-9a-f]{32}$/;

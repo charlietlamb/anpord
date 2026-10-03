@@ -139,7 +139,9 @@ describe("a request Sphynx never answers", () => {
       Effect.gen(function* () {
         const client = yield* clientAt(server.url);
         const fiber = yield* Effect.fork(
-          client.connectors.remove({ payload: { id: "connector_1" } })
+          client.environment.remove({
+            payload: { name: "SEARCH_API_KEY", scope: "organization" },
+          })
         );
         yield* server.heard("POST");
         yield* TestClock.adjust(Duration.minutes(10));
@@ -160,7 +162,9 @@ describe("a request Sphynx never answers", () => {
       Effect.gen(function* () {
         const client = yield* clientAt(server.url);
         const fiber = yield* Effect.fork(
-          client.connectors.remove({ payload: { id: "connector_1" } })
+          client.environment.remove({
+            payload: { name: "SEARCH_API_KEY", scope: "organization" },
+          })
         );
         yield* server.reached;
         yield* TestClock.adjust(Duration.seconds(4));

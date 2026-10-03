@@ -1,10 +1,12 @@
 import type { Actor } from "@sphynx/schema/domain/actor";
+import { EvalSandbox } from "@sphynx/schema/domain/eval-definition";
 import type { EvalHarness } from "@sphynx/schema/domain/eval-trial";
 import type { ReportedTrial } from "@sphynx/schema/public/runner-api";
-import { Clock, DateTime, Effect, Option, Redacted } from "effect";
-import { credentialIntegrations } from "../credentials/integrations";
+import { Clock, DateTime, Effect, Option, Redacted, Schema } from "effect";
+import { variablesRef } from "../credentials/credential-ref";
 import { CredentialResolver } from "../credentials/resolver";
 import { EvalNotFound, NotRunnable } from "../domain/errors";
+import { ownerOf } from "../environment/variable-repository";
 import { batchPlanQuery } from "../repositories/batch-plan-query";
 import { BatchRepository } from "../repositories/batch-repository";
 import { batchScopeQuery } from "../repositories/batch-scope-query";
@@ -33,13 +35,19 @@ export const makeReport = Effect.gen(function* () {
   const price = yield* makeTrialPricing;
   const costs = yield* TrialCostRepository;
 
-  const authMethodOf = (organizationId: string, connectionId: string | null) =>
-    connectionId === null
+  const authMethodOf = (
+    organizationId: string,
+    credentialRef: string | null,
+    integrationId: string
+  ) =>
+    credentialRef === null
       ? Effect.succeed(null)
-      : credentials.resolveBound({ connectionId, organizationId }).pipe(
-          Effect.map((credential) => Redacted.value(credential).authMethodId),
-          Effect.orElseSucceed(() => null)
-        );
+      : credentials
+          .resolveBound({ credentialRef, integrationId, organizationId })
+          .pipe(
+            Effect.map((credential) => Redacted.value(credential).authMethodId),
+            Effect.orElseSucceed(() => null)
+          );
 
   const localBatch = (organizationId: string, batchId: string) =>
     Effect.gen(function* () {
@@ -114,11 +122,11 @@ export const makeReport = Effect.gen(function* () {
       const { components, usage } = yield* price({
         authMethodId: yield* authMethodOf(
           organizationId,
-          plan.value.harnessCredentialConnectionId
+          plan.value.harnessCredentialRef,
+          plan.value.harness
         ),
         harness: plan.value.harness,
-        hasOwnSandboxCredential:
-          plan.value.sandboxCredentialConnectionId !== null,
+        hasOwnSandboxCredential: plan.value.sandboxCredentialRef !== null,
         model: plan.value.model,
         outcome: trial.outcome,
         provider: plan.value.sandbox,
@@ -183,10 +191,7 @@ export const makeReport = Effect.gen(function* () {
     Effect.gen(function* () {
       yield* localBatch(actor.organizationId, batchId);
 
-      const category = credentialIntegrations.find(
-        ({ id }) => id === harness
-      )?.category;
-      if (category !== "harness" && category !== "model") {
+      if (Schema.is(EvalSandbox)(harness)) {
         return yield* new NotRunnable({
           id: batchId,
           problems: [`credentials for ${harness} are not leased to a caller`],
@@ -200,6 +205,7 @@ export const makeReport = Effect.gen(function* () {
       const now = yield* Clock.currentTimeMillis;
 
       return {
+        authMethodId: Redacted.value(credential).authMethodId,
         expiresAt: DateTime.unsafeMake(now + LEASE_MILLIS),
         values: Redacted.value(credential).values,
       };
@@ -208,5 +214,27 @@ export const makeReport = Effect.gen(function* () {
       Effect.annotateLogs({ batchId, harness })
     );
 
-  return { beat, finish, lease, localBatch, report };
+  const leaseVariables = (
+    actor: Actor,
+    batchId: string,
+    names: readonly string[]
+  ) =>
+    Effect.gen(function* () {
+      yield* localBatch(actor.organizationId, batchId);
+      const values = yield* credentials.variables({
+        credentialRef: variablesRef(ownerOf(actor)),
+        names,
+        organizationId: actor.organizationId,
+      });
+      const now = yield* Clock.currentTimeMillis;
+      return {
+        expiresAt: DateTime.unsafeMake(now + LEASE_MILLIS),
+        values: { ...Redacted.value(values) },
+      };
+    }).pipe(
+      Effect.withSpan("Batches.leaseVariables", { attributes: { batchId } }),
+      Effect.annotateLogs({ batchId })
+    );
+
+  return { beat, finish, lease, leaseVariables, localBatch, report };
 });

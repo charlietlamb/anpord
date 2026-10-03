@@ -1,4 +1,5 @@
 import { Schema } from "effect";
+import { VariableName } from "./environment";
 
 export const PROFILE_LIMITS = {
   /* Cloudflare and Daytona pass file content in one shell argument, capping a file near 128 KiB encoded. */
@@ -57,13 +58,14 @@ const ProfileFiles = Schema.Record({
 );
 
 export const HarnessProfile = Schema.Struct({
-  /* Stored in the clear and readable by anyone who can read the run; secrets belong in a sealed `env` credential. */
+  /* Stored in the clear and readable by anyone who can read the run; secrets belong in Settings > Environment, named in variables. */
   env: Schema.optional(Schema.Record({ key: EnvName, value: Schema.String })),
   files: ProfileFiles,
   install: Schema.optional(Schema.String),
   name: ProfileName,
   run: Schema.optional(Schema.String),
   systemPrompt: Schema.optional(Schema.String),
+  variables: Schema.optional(Schema.Array(VariableName)),
 }).annotations({
   description:
     "Configuration layered on a harness: files written under the sandbox home and workspace, a system prompt, environment, an install command run before the harness, and for the command harness the run command.",

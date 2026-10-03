@@ -5,7 +5,7 @@ import { apiSurface } from "../api-surface";
 import { ActivityHandlers } from "./activity/handlers";
 import { ChannelsHandlers } from "./channels/handlers";
 import { CodebaseHandlers } from "./codebase/handlers";
-import { CredentialsHandlers } from "./credentials/handlers";
+import { EnvironmentHandlers } from "./environment/handlers";
 import { EvalsHandlers } from "./evals/handlers";
 import { HealthHandlers } from "./health/handlers";
 import { OAuthHandlers } from "./oauth/handlers";
@@ -17,7 +17,7 @@ const GroupsLive = Layer.mergeAll(
   PromptsHandlers,
   ChannelsHandlers,
   ActivityHandlers,
-  CredentialsHandlers,
+  EnvironmentHandlers,
   CodebaseHandlers,
   EvalsHandlers
 );

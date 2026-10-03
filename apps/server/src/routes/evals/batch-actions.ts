@@ -116,6 +116,12 @@ export const leaseCredentials = (batchId: string, harness: EvalHarness) =>
     return yield* (yield* Batches).lease(actor, batchId, harness);
   }).pipe(withEvalErrors);
 
+export const leaseVariables = (batchId: string, names: readonly string[]) =>
+  Effect.gen(function* () {
+    const actor = yield* CurrentActor;
+    return yield* (yield* Batches).leaseVariables(actor, batchId, names);
+  }).pipe(withEvalErrors);
+
 export const subscribeToBatch = (batchId: string) =>
   Effect.gen(function* () {
     yield* (yield* EvalReads).ownedBatch(yield* organization, batchId);

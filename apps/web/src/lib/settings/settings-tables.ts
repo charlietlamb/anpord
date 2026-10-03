@@ -16,10 +16,10 @@ export const API_KEYS_TABLE = {
   label: "API keys",
 } as const;
 
-export const CONNECTIONS_TABLE = {
-  columns: "minmax(0,1fr) minmax(0,10rem) 7rem 6rem 7rem 1rem",
-  headings: ["Name", "Method", "Available to", "Status", "Last used"],
-  label: "Connections",
+export const ENVIRONMENT_TABLE = {
+  columns: "minmax(0,1fr) minmax(0,13rem) minmax(0,9rem) 7rem 6rem 1rem",
+  headings: ["Name", "Used by", "Value", "Available to", "Last used"],
+  label: "Environment",
 } as const;
 
 export const CHANNELS_TABLE = {

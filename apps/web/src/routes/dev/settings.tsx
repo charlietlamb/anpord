@@ -8,24 +8,16 @@ import {
 import { createFileRoute } from "@tanstack/react-router";
 import { DashboardShell } from "@/components/dashboard/dashboard-shell";
 import { PreviewScreen } from "@/components/dev/preview-screen";
-import {
-  CODEX,
-  CONNECTIONS,
-  KEYS,
-  MEMBERS,
-} from "@/components/dev/settings-fixtures";
+import { ENVIRONMENT, KEYS, MEMBERS } from "@/components/dev/settings-fixtures";
 import { PageHeader } from "@/components/layout/page-header";
 import { MemberRow } from "@/components/organization/member-row";
 import { ApiKeyList } from "@/components/settings/api-key-list";
-import { ConnectionRow } from "@/components/settings/connection-row";
 import { DangerZoneSettings } from "@/components/settings/danger-zone-settings";
+import { EnvironmentList } from "@/components/settings/environment/environment-list";
 import { InstalledAccount } from "@/components/settings/installed-account";
 import { OrganizationForm } from "@/components/settings/organization-form";
 import { SettingsFrame } from "@/components/settings/settings-frame";
-import {
-  CONNECTIONS_TABLE,
-  MEMBERS_TABLE,
-} from "@/lib/settings/settings-tables";
+import { MEMBERS_TABLE } from "@/lib/settings/settings-tables";
 
 export const Route = createFileRoute("/dev/settings")({
   component: SettingsPreview,
@@ -77,32 +69,29 @@ function SettingsPreview() {
         </DashboardShell>
       </PreviewScreen>
 
-      <PreviewScreen name="Harnesses">
+      <PreviewScreen name="Environment">
         <DashboardShell sidebarOpen>
           <SettingsFrame>
             <PageHeader
-              actions={add("Add harness")}
-              description="The accounts agents run on."
-              title="Harnesses"
+              actions={
+                <>
+                  <Button size="sm" variant="outline">
+                    Add subscription
+                  </Button>
+                  {add("Add variable")}
+                </>
+              }
+              description="The keys and subscriptions your evals run on."
+              title="Environment"
             />
-            <DataTable
-              columns={CONNECTIONS_TABLE.columns}
-              label={CONNECTIONS_TABLE.label}
-            >
-              <DataTableHead headings={CONNECTIONS_TABLE.headings} />
-              <DataTableBody>
-                {CONNECTIONS.map((row) => (
-                  <ConnectionRow
-                    connection={row}
-                    integration={CODEX}
-                    key={row.id}
-                    onDefault={() => undefined}
-                    onRemove={() => undefined}
-                    onVerify={() => undefined}
-                  />
-                ))}
-              </DataTableBody>
-            </DataTable>
+            <EnvironmentList
+              error={null}
+              loading={false}
+              onDisconnect={() => undefined}
+              onEdit={() => undefined}
+              onRemove={() => undefined}
+              rows={ENVIRONMENT}
+            />
           </SettingsFrame>
         </DashboardShell>
       </PreviewScreen>

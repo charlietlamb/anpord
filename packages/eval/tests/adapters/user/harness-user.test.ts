@@ -142,6 +142,7 @@ const stack = (
               : Effect.succeed(found);
           },
           resolveBound: () => Effect.fail(connectionNotFound()),
+          variables: () => Effect.fail(connectionNotFound()),
         }),
         sandboxes ?? recordedSandbox(seen),
         Layer.succeed(Harnesses, {
@@ -280,7 +281,7 @@ describe("a person played through a harness", () => {
 
     expect(result).toMatchObject({
       ended: "no-user",
-      reason: "no claude connection is configured for this organization",
+      reason: "nothing in Settings > Environment runs claude",
     });
     expect(result.turns).toHaveLength(1);
     expect(seen.log).toEqual(["agent turn 1"]);

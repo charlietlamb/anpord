@@ -3,7 +3,7 @@ import { Layer } from "effect";
 import { ApiKeyAuthenticationLive } from "../../http/authentication/api-key-authentication";
 import { apiSurface } from "../api-surface";
 import { AuthHandlers } from "./auth/handlers";
-import { PublicConnectorsHandlers } from "./connectors/handlers";
+import { PublicEnvironmentHandlers } from "./environment/handlers";
 import { BatchesHandlers } from "./evals/batches-handlers";
 import { CasesHandlers } from "./evals/cases-handlers";
 import { ModelsHandlers } from "./evals/models-handlers";
@@ -17,7 +17,7 @@ export const PublicApiLive = apiSurface(
   Layer.mergeAll(
     AuthHandlers,
     PublicPromptsHandlers,
-    PublicConnectorsHandlers,
+    PublicEnvironmentHandlers,
     BatchesHandlers,
     SuitesHandlers,
     CasesHandlers,

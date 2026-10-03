@@ -74,10 +74,8 @@ export const makeRunCase = (
           input.actor,
           runs.map((run) => ({
             credentials: {
-              harnessConnectionId:
-                run.harnessCredentialConnectionId ?? undefined,
-              sandboxConnectionId:
-                run.sandboxCredentialConnectionId ?? undefined,
+              harnessRef: run.harnessCredentialRef ?? undefined,
+              sandboxRef: run.sandboxCredentialRef ?? undefined,
             },
             harness: run.harness,
             sandbox: run.sandbox,
@@ -92,9 +90,9 @@ export const makeRunCase = (
           organizationId: input.actor.organizationId,
           runs: runs.map((run, index) => ({
             ...(bound[index] ?? {
-              harnessCredentialConnectionId: null,
+              harnessCredentialRef: null,
               harnessCredentialRevision: null,
-              sandboxCredentialConnectionId: null,
+              sandboxCredentialRef: null,
               sandboxCredentialRevision: null,
             }),
             caseVersionInternalId,

@@ -1,7 +1,18 @@
 import { Effect, Layer, Redacted } from "effect";
+import { credentialFromVariables } from "../environment/variable-credentials";
 import { CredentialError } from "./errors";
 import { CredentialResolver } from "./resolver";
 import { KEYLESS_HARNESSES } from "./variants";
+
+export interface LeasedCredential {
+  readonly authMethodId: string;
+  readonly values: Readonly<Record<string, string>>;
+}
+
+export interface LocalCredentials {
+  readonly credentials: ReadonlyMap<string, LeasedCredential>;
+  readonly variables: Readonly<Record<string, string>>;
+}
 
 const environment = (): Readonly<Record<string, string>> =>
   Object.fromEntries(
@@ -10,60 +21,83 @@ const environment = (): Readonly<Record<string, string>> =>
     )
   );
 
-const resolved = (
-  integrationId: string,
-  values: Readonly<Record<string, string>>
-) =>
+const resolved = (integrationId: string, credential: LeasedCredential) =>
   Redacted.make({
-    authMethodId: "env",
+    authMethodId: credential.authMethodId,
     connectionId: "local",
     integrationId,
     revision: 0,
-    values,
+    values: credential.values,
   });
 
+const notHeld = (message: string) =>
+  new CredentialError({ code: "not-found", message });
+
 const answering = (
-  valuesFor: (
+  credentialFor: (
     integrationId: string
-  ) => Effect.Effect<Readonly<Record<string, string>>, CredentialError>
+  ) => Effect.Effect<LeasedCredential, CredentialError>,
+  variables: Readonly<Record<string, string>>
 ) =>
   Layer.succeed(
     CredentialResolver,
     CredentialResolver.of({
       persist: () => Effect.void,
       resolve: ({ integrationId }) =>
-        Effect.map(valuesFor(integrationId), (values) =>
-          resolved(integrationId, values)
+        Effect.map(credentialFor(integrationId), (credential) =>
+          resolved(integrationId, credential)
         ),
-      resolveBound: ({ connectionId }) =>
+      resolveBound: ({ credentialRef }) =>
         Effect.fail(
-          new CredentialError({
-            code: "not-found",
-            message: `a local run has no stored connection, so ${connectionId} cannot be read`,
-          })
+          notHeld(
+            `a local run has no stored credential, so ${credentialRef} cannot be read`
+          )
         ),
+      variables: ({ names }) => {
+        const missing = names.filter((name) => variables[name] === undefined);
+        return missing.length > 0
+          ? Effect.fail(
+              notHeld(`Set ${missing.join(", ")} to run this profile`)
+            )
+          : Effect.succeed(
+              Redacted.make(
+                Object.fromEntries(
+                  names.map((name) => [name, variables[name] ?? ""])
+                )
+              )
+            );
+      },
     })
   );
 
-export const credentialResolverFrom = (
-  leases: ReadonlyMap<string, Readonly<Record<string, string>>>
-) =>
+const keyless = (integrationId: string) =>
+  [...KEYLESS_HARNESSES].some((harness) => harness === integrationId);
+
+export const credentialResolverFrom = (local: LocalCredentials) =>
   answering((integrationId) => {
-    if ([...KEYLESS_HARNESSES].some((harness) => harness === integrationId)) {
-      return Effect.succeed({});
+    if (keyless(integrationId)) {
+      return Effect.succeed({ authMethodId: "none", values: {} });
     }
-    const values = leases.get(integrationId);
-    return values === undefined
+    const held = local.credentials.get(integrationId);
+    return held === undefined
       ? Effect.fail(
-          new CredentialError({
-            code: "not-found",
-            message: `this run holds credentials for ${[...leases.keys()].join(", ")}, not one for ${integrationId}`,
-          })
+          notHeld(
+            `this run holds credentials for ${[...local.credentials.keys()].join(", ")}, not one for ${integrationId}`
+          )
         )
-      : Effect.succeed(values);
-  });
+      : Effect.succeed(held);
+  }, local.variables);
 
 export const CredentialResolverFromEnv = Layer.suspend(() => {
   const values = environment();
-  return answering(() => Effect.succeed(values));
+  const named = new Map(Object.entries(values));
+  return answering((integrationId) => {
+    if (keyless(integrationId)) {
+      return Effect.succeed({ authMethodId: "none", values: {} });
+    }
+    const credential = credentialFromVariables(integrationId, named);
+    return credential === undefined
+      ? Effect.fail(notHeld(`Nothing in this shell runs ${integrationId}`))
+      : Effect.succeed(credential);
+  }, values);
 });

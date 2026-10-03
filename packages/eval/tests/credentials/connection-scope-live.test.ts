@@ -84,21 +84,16 @@ describe.skipIf(skipWithoutDatabase())(
       )
     );
 
-    /* Every caller does a scoped find first, so none of these is reachable
-       today. The predicate is here because a method that takes an id and
-       trusts it is one refactor away from being reachable, and the row it
-       would write is somebody else's credential. */
-    it("refuses another organisation's row on verify, rotate and setDefault", async () => {
+    it("refuses another organisation's row on find and remove", async () => {
       const outcome = await run(
         Effect.gen(function* () {
           const repository = yield* CredentialConnectionRepository;
-          const now = new Date();
           const created = yield* repository.insert(
             actorOf(owner),
             {
-              authMethodId: "api-key",
+              authMethodId: "auth-json",
               id: `credentialConnection_scope_${suffix}`,
-              integrationId: "daytona",
+              integrationId: "opencode",
               name: "Owned",
               organizationId: owner,
               ownerUserId: userId,
@@ -111,27 +106,20 @@ describe.skipIf(skipWithoutDatabase())(
           const asIntruder = actorOf(intruder);
 
           return {
-            created,
-            rotated: yield* Effect.either(
-              repository.rotate(asIntruder, created, "rewritten", now)
+            found: yield* Effect.either(
+              repository.find(asIntruder, created.id)
             ),
-            promoted: yield* Effect.either(
-              repository.setDefault(asIntruder, created, now)
+            removed: yield* Effect.either(
+              repository.remove(asIntruder, created.id)
             ),
             unchanged: yield* repository.find(actorOf(owner), created.id),
-            verified: yield* Effect.either(
-              repository.recordVerification(asIntruder, created.id, false, now)
-            ),
           };
         })
       );
 
-      expect(outcome.verified._tag).toBe("Left");
-      expect(outcome.rotated._tag).toBe("Left");
-      expect(outcome.promoted._tag).toBe("Left");
-      expect(outcome.unchanged.status).toBe("active");
+      expect(outcome.found._tag).toBe("Left");
+      expect(outcome.removed._tag).toBe("Left");
       expect(outcome.unchanged.sealedPayload).toBe("sealed");
-      expect(outcome.unchanged.revision).toBe(outcome.created.revision);
     });
 
     it("leaves a last-used stamp alone for another organisation", async () => {

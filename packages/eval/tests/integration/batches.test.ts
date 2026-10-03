@@ -207,11 +207,11 @@ describe.skipIf(skipWithoutDatabase())("batches against the record", () => {
 
     const payCodex = runs.find((row) => row.internalId === batch.runs[0]?.id);
     expect(payCodex?.caseVersionInternalId).toBe(payVersion?.internalId);
-    expect(payCodex?.harnessCredentialConnectionId).toBe(
+    expect(payCodex?.harnessCredentialRef).toBe(
       connectionOf(organizationId, "codex")
     );
     expect(payCodex?.harnessCredentialRevision).toBe(1);
-    expect(payCodex?.sandboxCredentialConnectionId).toBe(
+    expect(payCodex?.sandboxCredentialRef).toBe(
       connectionOf(organizationId, "daytona")
     );
 

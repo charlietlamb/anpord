@@ -61,7 +61,7 @@ export const seedRun = async (
     readonly organizationId: string;
     readonly runStatus?: string;
     readonly sandbox?: string;
-    readonly sandboxConnectionId?: string | null;
+    readonly sandboxRef?: string | null;
     readonly tag: string;
     readonly trialCount?: number;
   }
@@ -117,7 +117,7 @@ export const seedRun = async (
     createdAt,
     harnessVersion: "0.144.4",
     internalId: seeded.runInternalId,
-    sandboxCredentialConnectionId: input.sandboxConnectionId ?? null,
+    sandboxCredentialRef: input.sandboxRef ?? null,
     status: input.runStatus ?? "running",
     trialCount: input.trialCount ?? 1,
     variantInternalId: seeded.variantInternalId,

@@ -50,7 +50,7 @@ Write the brief the way the person would say it, one fact per line. The person i
 
 By default a model plays the person. It is fixed for all cases, not chosen per case, and defaults to `gpt-5.4-mini`. A weak simulator can approve a summary that contradicts its own brief, so the case passes for the wrong reason. The `SPHYNX_USER_MODEL` environment variable on the runner overrides it.
 
-That model needs a model [connection](/connections). Without one, a batch that contains a case with a simulated person is refused when it starts.
+That model needs its provider key in [Settings > Environment](/environment), `OPENAI_API_KEY` for the default. Without one, a batch that contains a case with a simulated person is refused when it starts.
 
 To play the person through a harness instead, name one and a model:
 
@@ -63,13 +63,13 @@ user: human({
 }),
 ```
 
-`harness` is any harness except `command`, and `model` is required with it. The person uses your organization's connection for that harness, so a Codex person can run on a ChatGPT subscription and needs no OpenAI API key. When the variant uses the same harness, the person reuses the variant's connection. Without a connection for it, the trial ends with an error that names the missing harness.
+`harness` is any harness except `command`, and `model` is required with it. The person runs on that harness's key or subscription, so a Codex person can run on a ChatGPT subscription and needs no `OPENAI_API_KEY`. Without one, the trial ends with an error that names the missing harness.
 
 A harness person gets a sandbox of its own, separate from the agent's workspace, kept for the whole conversation. It is told to reply only in words, never to run commands or touch files.
 
 On `codex` and `claude`, the person keeps one session for the whole conversation, and each later turn sends only the agent's latest reply. Other harnesses start a new session every turn and are sent everything said so far.
 
-In a local run, Sphynx leases a credential for every harness the suite needs, including one that plays the person. Each is used only for its own harness.
+In a local run, Sphynx leases a key for every harness the suite needs, including one that plays the person. Each is used only for its own harness.
 
 Whoever plays the person, model or harness and model, is part of the variant, so results from different people are never mixed. Changing it creates a new variant. A harness and model named in the case are also part of the case, so changing them creates a new case version.
 

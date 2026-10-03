@@ -46,6 +46,7 @@ const profile: RequestedProfile = {
   name: "sample",
   run: null,
   systemPrompt: "Answer in one word.",
+  variables: null,
 };
 
 const credential = (values: Readonly<Record<string, string>>) =>
@@ -176,13 +177,13 @@ describe("the environment a profile cell runs under", () => {
     expect(env.SHARED).toBe("profile");
   });
 
-  test("lets the credential's keys win over both", async () => {
+  test("passes the variables a profile named, under its literal env", async () => {
     const env = await envOf({
-      credential: credential({ OPENAI_API_KEY: "sk-1", SHARED: "credential" }),
+      forwarded: { SEARCH_API_KEY: "exa-1", SHARED: "named" },
     });
 
-    expect(env.OPENAI_API_KEY).toBe("sk-1");
-    expect(env.SHARED).toBe("credential");
+    expect(env.SEARCH_API_KEY).toBe("exa-1");
+    expect(env.SHARED).toBe("profile");
   });
 
   test("adds none of it when the cell has no profile", async () => {

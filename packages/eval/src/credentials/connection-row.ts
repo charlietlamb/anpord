@@ -1,19 +1,34 @@
 import type { credentialConnection } from "@sphynx/db/schema/credentials/connections";
-import { CredentialConnection } from "@sphynx/schema/domain/credentials";
-import { Schema } from "effect";
+import {
+  Subscription,
+  type SubscriptionPlan,
+} from "@sphynx/schema/domain/credentials";
+import { Option, Schema } from "effect";
 import { timestamp } from "../repositories/run-view";
 
 export type ConnectionRow = typeof credentialConnection.$inferSelect;
 
-export const summaryOf = (row: ConnectionRow): CredentialConnection =>
-  Schema.validateSync(CredentialConnection)({
-    authMethodId: row.authMethodId,
-    createdAt: timestamp(row.createdAt),
-    id: row.id,
-    integrationId: row.integrationId,
-    isDefault: row.isDefault,
-    lastUsedAt: timestamp(row.lastUsedAt),
-    name: row.name,
-    scope: row.scope,
-    status: row.status,
-  });
+const planOf = (row: ConnectionRow): Option.Option<SubscriptionPlan> => {
+  if (row.integrationId === "codex" && row.authMethodId === "chatgpt") {
+    return Option.some("chatgpt");
+  }
+  if (row.integrationId === "opencode" || row.integrationId === "pi") {
+    return Option.some(row.integrationId);
+  }
+  return Option.none();
+};
+
+export const subscriptionOf = (
+  row: ConnectionRow
+): Option.Option<Subscription> =>
+  Option.map(planOf(row), (plan) =>
+    Schema.validateSync(Subscription)({
+      createdAt: timestamp(row.createdAt),
+      id: row.id,
+      lastUsedAt: timestamp(row.lastUsedAt),
+      plan,
+      renews: plan === "chatgpt",
+      scope: row.scope,
+      status: row.status,
+    })
+  );

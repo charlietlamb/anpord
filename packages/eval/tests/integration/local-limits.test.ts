@@ -34,6 +34,7 @@ const runLimited = (input: {
           name: "slow",
           run: "node agent.cjs",
           systemPrompt: null,
+          variables: null,
         },
         prompt: "start",
         source: {

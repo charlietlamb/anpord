@@ -25,11 +25,12 @@ export const reapSandboxes = (olderThan: Duration.Duration) =>
     const now = yield* Clock.currentTimeMillis;
 
     const credentialsFor = (found: LiveSandbox) =>
-      found.sandboxConnectionId === null
+      found.sandboxRef === null
         ? Effect.succeed(undefined)
         : credentials
             .resolveBound({
-              connectionId: found.sandboxConnectionId,
+              credentialRef: found.sandboxRef,
+              integrationId: found.provider,
               organizationId: found.organizationId,
             })
             .pipe(

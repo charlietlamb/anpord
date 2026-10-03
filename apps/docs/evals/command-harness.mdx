@@ -29,7 +29,7 @@ The command harness needs a [profile](/evals/profiles). Its `run` is the command
 | `SPHYNX_SYSTEM_PROMPT_FILE` | Path to the profile's system prompt, when it has one |
 | `SPHYNX_TRACE_LOG` | Where the shell recorder appends what it sees |
 
-The profile's `env` is set too. Stdin is closed.
+The profile's `env` is set too, and so are the [variables](/environment#your-own-variables) it names. Stdin is closed.
 
 ## Runner kit
 

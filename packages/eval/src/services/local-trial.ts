@@ -113,6 +113,15 @@ export const LocalTrialsLive = Layer.effect(
           actor: LOCAL_ACTOR,
           integrationId: request.harness,
         });
+        const names = request.profile?.variables ?? [];
+        const variables =
+          names.length === 0
+            ? undefined
+            : yield* credentials.variables({
+                credentialRef: "local",
+                names,
+                organizationId: "local",
+              });
 
         const result = yield* agent.run({
           autoStopMinutes: autoStopMinutesFor(request.timeoutMs ?? null),
@@ -138,6 +147,7 @@ export const LocalTrialsLive = Layer.effect(
           timeoutMs: request.timeoutMs ?? null,
           user: request.user ?? null,
           validator: request.validator ?? null,
+          variables,
           verifyCommand: request.verifyCommand,
           workspace: workspacePath,
         });

@@ -1,8 +1,7 @@
 import type { Db } from "@sphynx/db/query";
-import { user } from "@sphynx/db/schema/auth/users";
 import { credentialConnection } from "@sphynx/db/schema/credentials/connections";
 import type { Actor } from "@sphynx/schema/domain/actor";
-import { and, desc, eq, ne } from "drizzle-orm";
+import { and, desc, eq } from "drizzle-orm";
 import { visibleTo } from "./connection-scope";
 
 export const selectVisible = (db: Db, actor: Actor, id: string) =>
@@ -22,24 +21,6 @@ export const selectAllVisible = (db: Db, actor: Actor) =>
     .from(credentialConnection)
     .where(visibleTo(actor.organizationId, actor.id))
     .orderBy(desc(credentialConnection.isDefault), credentialConnection.name);
-
-export const selectPersonalOwners = (db: Db, actor: Actor) =>
-  db
-    .selectDistinct({
-      integrationId: credentialConnection.integrationId,
-      owner: user.name,
-    })
-    .from(credentialConnection)
-    .innerJoin(user, eq(user.id, credentialConnection.ownerUserId))
-    .where(
-      and(
-        eq(credentialConnection.organizationId, actor.organizationId),
-        eq(credentialConnection.scope, "personal"),
-        eq(credentialConnection.status, "active"),
-        ne(credentialConnection.ownerUserId, actor.id)
-      )
-    )
-    .orderBy(credentialConnection.integrationId, user.name);
 
 export const selectActive = (
   db: Db,

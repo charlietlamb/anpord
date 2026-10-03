@@ -13,7 +13,7 @@ export const layerTestResolver = (
         Effect.succeed(
           Redacted.make({
             authMethodId: "test",
-            connectionId: input.connectionId ?? "test",
+            connectionId: input.credentialRef ?? "test",
             integrationId: input.integrationId,
             revision: 1,
             values,
@@ -23,11 +23,19 @@ export const layerTestResolver = (
         Effect.succeed(
           Redacted.make({
             authMethodId: "test",
-            connectionId: input.connectionId,
-            integrationId: "test",
+            connectionId: input.credentialRef,
+            integrationId: input.integrationId,
             revision: 1,
             values,
           })
+        ),
+      variables: (input) =>
+        Effect.succeed(
+          Redacted.make(
+            Object.fromEntries(
+              input.names.map((name) => [name, values[name] ?? ""])
+            )
+          )
         ),
     })
   );

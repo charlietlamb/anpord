@@ -7,6 +7,7 @@ import type {
   CredentialLease,
   IdempotencyKey,
   ReportedTrial,
+  VariableLease,
 } from "@sphynx/schema/public/runner-api";
 import { Context, Effect, Layer } from "effect";
 import type { CredentialError } from "../credentials/errors";
@@ -42,6 +43,14 @@ export interface BatchesShape {
     harness: EvalHarness
   ) => Effect.Effect<
     CredentialLease,
+    CredentialError | EvalNotFound | NotRunnable
+  >;
+  readonly leaseVariables: (
+    actor: Actor,
+    batchId: string,
+    names: readonly string[]
+  ) => Effect.Effect<
+    VariableLease,
     CredentialError | EvalNotFound | NotRunnable
   >;
   readonly planRerun: (
@@ -95,6 +104,7 @@ export const BatchesLive = Layer.effect(
       execute,
       finish: reporting.finish,
       lease: reporting.lease,
+      leaseVariables: reporting.leaseVariables,
       planRerun: (input) =>
         planned(input).pipe(Effect.map((ready) => ready.plan)),
       report: reporting.report,

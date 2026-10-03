@@ -11,8 +11,8 @@ import { tryStore } from "./query";
 export interface LiveSandbox {
   readonly organizationId: string;
   readonly provider: string;
-  readonly sandboxConnectionId: string | null;
   readonly sandboxId: string;
+  readonly sandboxRef: string | null;
   readonly startedAt: Date;
   readonly trialInternalId: string;
 }
@@ -52,7 +52,7 @@ export const LiveSandboxesLive = Layer.effect(
               createdAt: evalTrial.createdAt,
               organizationId: evalBatch.organizationId,
               provider: evalVariant.sandbox,
-              sandboxConnectionId: evalRun.sandboxCredentialConnectionId,
+              sandboxRef: evalRun.sandboxCredentialRef,
               sandboxId: evalTrial.sandboxId,
               startedAt: evalTrial.startedAt,
               trialInternalId: evalTrial.internalId,
@@ -86,7 +86,7 @@ export const LiveSandboxesLive = Layer.effect(
                     {
                       organizationId: row.organizationId,
                       provider: row.provider,
-                      sandboxConnectionId: row.sandboxConnectionId,
+                      sandboxRef: row.sandboxRef,
                       sandboxId: row.sandboxId,
                       startedAt: row.startedAt ?? row.createdAt,
                       trialInternalId: row.trialInternalId,

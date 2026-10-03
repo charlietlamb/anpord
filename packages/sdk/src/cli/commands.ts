@@ -10,8 +10,8 @@ import { SphynxApi } from "@sphynx/schema/public/client";
 import { extractVariables } from "@sphynx/template/extract";
 import { Effect, Option } from "effect";
 import { ClientLayer } from "../client/config";
-import { connectors } from "./connector-command";
 import { declarationFile } from "./declarations";
+import { env } from "./env-command";
 import { runEval } from "./eval-command";
 import { json, note, promptContent, row } from "./render";
 import { whoami } from "./whoami-command";
@@ -201,7 +201,7 @@ const promptCommands = [
 export const commandsWith = (prompts: boolean) =>
   [
     runEval,
-    withClient(connectors),
+    withClient(env),
     withClient(whoami),
     ...(prompts ? promptCommands : []),
   ] as const;

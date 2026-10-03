@@ -1,35 +1,69 @@
 import { describe, expect, it } from "bun:test";
-import { parseEnvLines } from "../../../src/lib/settings/env-lines";
+import {
+  looksLikeEnv,
+  parseEnvLines,
+} from "../../../src/lib/settings/env-lines";
 
 describe("env lines", () => {
-  it("reads KEY=VALUE lines into a map", () => {
+  it("reads KEY=VALUE lines and skips comments and blank lines", () => {
     expect(
       parseEnvLines(
-        "OPENAI_API_KEY=sk-1\n\n# a comment\n  BASE_URL = https://x/v1=2 "
+        "OPENAI_API_KEY=sk-1\n\n# a comment\n  BASE_URL = https://x "
       )
-    ).toEqual({
-      problem: null,
-      values: { BASE_URL: "https://x/v1=2", OPENAI_API_KEY: "sk-1" },
-    });
+    ).toEqual([
+      { name: "OPENAI_API_KEY", value: "sk-1" },
+      { name: "BASE_URL", value: "https://x" },
+    ]);
   });
 
-  it("reads nothing from an empty textarea", () => {
-    expect(parseEnvLines("")).toEqual({ problem: null, values: {} });
+  it("drops a leading export", () => {
+    expect(parseEnvLines("export API_KEY=abc")).toEqual([
+      { name: "API_KEY", value: "abc" },
+    ]);
   });
 
-  it("names a line without a separator by its number, never its text", () => {
-    const problem = parseEnvLines("API_KEY=x\njust words").problem;
-
-    expect(problem).toContain("Line 2");
-    /* The text is where a pasted key lives, so an error never quotes it. */
-    expect(problem).not.toContain("just words");
+  it("unwraps quoted values and keeps what is inside them", () => {
+    expect(
+      parseEnvLines(`A="hello # world"\nB='it''s'\nC="line\\nnext"`)
+    ).toEqual([
+      { name: "A", value: "hello # world" },
+      { name: "B", value: "it''s" },
+      { name: "C", value: "line\nnext" },
+    ]);
   });
 
-  it("refuses a lower case name", () => {
-    expect(parseEnvLines("api_key=x").problem).toContain("api_key");
+  it("strips an inline comment after an unquoted value", () => {
+    expect(parseEnvLines("A=value # note")).toEqual([
+      { name: "A", value: "value" },
+    ]);
   });
 
-  it("refuses an empty value", () => {
-    expect(parseEnvLines("API_KEY=").problem).toContain("API_KEY");
+  it("reads CRLF line endings", () => {
+    expect(parseEnvLines("A=1\r\nB=2\r\n")).toEqual([
+      { name: "A", value: "1" },
+      { name: "B", value: "2" },
+    ]);
+  });
+
+  it("keeps every = after the first in the value", () => {
+    expect(parseEnvLines("URL=https://x/v1?a=1&b=2")).toEqual([
+      { name: "URL", value: "https://x/v1?a=1&b=2" },
+    ]);
+  });
+
+  it("skips lines without a name and value separator", () => {
+    expect(parseEnvLines("just words\n=nothing\nA=1")).toEqual([
+      { name: "A", value: "1" },
+    ]);
+  });
+
+  it("reads nothing from an empty paste", () => {
+    expect(parseEnvLines("")).toEqual([]);
+  });
+
+  it("treats multi line text or text with = as an env paste", () => {
+    expect(looksLikeEnv("A=1")).toBe(true);
+    expect(looksLikeEnv("one\ntwo")).toBe(true);
+    expect(looksLikeEnv("ANTHROPIC")).toBe(false);
   });
 });

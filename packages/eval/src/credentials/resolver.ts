@@ -5,12 +5,19 @@ import type { CredentialError } from "./errors";
 
 export interface ResolveCredential {
   readonly actor: Actor;
-  readonly connectionId?: string;
+  readonly credentialRef?: string;
   readonly integrationId: string;
 }
 
 export interface BoundCredential {
-  readonly connectionId: string;
+  readonly credentialRef: string;
+  readonly integrationId: string;
+  readonly organizationId: string;
+}
+
+export interface BoundVariables {
+  readonly credentialRef: string;
+  readonly names: readonly string[];
   readonly organizationId: string;
 }
 
@@ -30,6 +37,12 @@ export interface CredentialResolverShape {
   readonly resolveBound: (
     input: BoundCredential
   ) => Effect.Effect<Redacted.Redacted<ResolvedCredential>, CredentialError>;
+  readonly variables: (
+    input: BoundVariables
+  ) => Effect.Effect<
+    Redacted.Redacted<Readonly<Record<string, string>>>,
+    CredentialError
+  >;
 }
 
 export class CredentialResolver extends Context.Tag(

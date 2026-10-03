@@ -6,6 +6,7 @@ import {
   beatBatch,
   finishBatch,
   leaseCredentials,
+  leaseVariables,
   reportTrial,
   startBatch,
   subscribeToBatch,
@@ -28,6 +29,9 @@ export const RunnerHandlers = HttpApiBuilder.group(
       )
       .handle("lease", write, ({ payload }) =>
         leaseCredentials(payload.id, payload.harness)
+      )
+      .handle("leaseVariables", write, ({ payload }) =>
+        leaseVariables(payload.id, payload.names)
       )
       .handle("report", write, ({ payload }) => reportTrial(payload))
       .handle("beat", write, ({ payload }) => beatBatch(payload.id))

@@ -83,10 +83,14 @@ export const trialSecrets = (request: {
   readonly forwarded?: Readonly<Record<string, string>>;
   readonly harnessCredential: Redacted.Redacted<ResolvedCredential>;
   readonly sandboxCredentials?: Redacted.Redacted<CredentialValues>;
+  readonly variables?: Redacted.Redacted<Readonly<Record<string, string>>>;
 }): readonly string[] => [
   ...valueSecrets(Redacted.value(request.harnessCredential).values),
   ...(request.sandboxCredentials === undefined
     ? []
     : valueSecrets(Redacted.value(request.sandboxCredentials))),
   ...Object.entries(request.forwarded ?? {}).flatMap(forwardedSecrets),
+  ...(request.variables === undefined
+    ? []
+    : valueSecrets(Redacted.value(request.variables))),
 ];

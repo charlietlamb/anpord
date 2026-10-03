@@ -1,6 +1,6 @@
 ---
 title: "Sphynx CLI"
-description: "Run eval suites and connect credentials from a terminal"
+description: "Run eval suites and set keys from a terminal"
 ---
 
 ## Install
@@ -26,7 +26,7 @@ Set `SPHYNX_API_KEY` before commands that call Sphynx. `--help`, `--version`, `e
 | --- | --- |
 | `sphynx eval [file] [options]` | Run suite files, or a stored case, as batches and gate on the results |
 | `sphynx eval import --format <format> <path> [--out <file>]` | Turn a case file a team already wrote into a suite |
-| `sphynx connectors <subcommand>` | Connect the credentials evals use |
+| `sphynx env <subcommand>` | Set the keys and variables evals use |
 | `sphynx whoami [--json]` | Show the organization and key `SPHYNX_API_KEY` acts for |
 | `sphynx --completions <shell>` | Print completions for zsh, bash or fish |
 
@@ -45,7 +45,7 @@ key starts with    anp_AbCd
 permissions        evals:read, evals:write
 ```
 
-Every run, suite and connector a key touches belongs to this organization. `--json` prints the same facts as JSON. The secret is never printed. `sphynx eval` also prints the organization once before its first batch.
+Every run, suite and variable a key touches belongs to this organization. `--json` prints the same facts as JSON. The secret is never printed. `sphynx eval` also prints the organization once before its first batch.
 
 ## Run evals
 
@@ -75,11 +75,24 @@ Under every gate, a batch that fails to start, fails, or times out fails the com
 
 `sphynx eval import` reads an existing case file (or a directory of them) and prints a suite, or writes it with `--out`. It converts the mechanical assertions and leaves prose ones failing until someone writes the check. It reports how many of each on stderr. See [importing a case file](/evals/import).
 
-## Connect credentials
+## Environment variables
 
-`sphynx connectors add <integration>` connects a credential for the organization. It prompts for the secret, or reads it from stdin when not run in a terminal, so the secret never appears in your shell history. Pass `--default` to make it the one evals use, `--name` to label it and `--auth` to pick an auth method. Integrations that sign in through a browser are connected in the dashboard instead.
+`sphynx env` manages the keys and variables in [Settings > Environment](/environment). It needs a key with `credentials:read` to list and `credentials:write` to change.
 
-`sphynx connectors integrations` lists what can be connected, `connectors list` shows what the organization has, and `connectors remove <id>` deletes one.
+| Command | Purpose |
+| --- | --- |
+| `sphynx env list [--json]` | List variables and subscriptions. Secrets show only a preview |
+| `sphynx env set NAME [--plain] [--personal]` | Set one variable. `--plain` keeps the value readable. `--personal` sets it only for you |
+| `sphynx env import [file] [--personal]` | Set every variable in a `.env` file, or in stdin when the file is left out |
+| `sphynx env remove NAME [--personal]` | Remove a variable |
+
+`set` prompts for the value, or reads it from stdin when not run in a terminal, so the secret never appears in your shell history:
+
+```bash
+echo "$KEY" | sphynx env set ANTHROPIC_API_KEY
+```
+
+Subscriptions, such as ChatGPT for Codex, are added in the dashboard.
 
 ## Exit codes
 

@@ -1,17 +1,15 @@
 import { describe, expect, it } from "bun:test";
-import { credentialIntegrations } from "../../src/credentials/integrations";
 import { MODEL_PROVIDERS } from "../../src/domain/model-providers";
+import { VARIABLE_CREDENTIALS } from "../../src/environment/variable-credentials";
+
+const API_KEY_NAME = /_API_KEY$/;
 
 describe("the providers a case's human can run on", () => {
-  it("offers every one of them as a connector", () => {
-    const connectable = new Set(
-      credentialIntegrations
-        .filter(({ category }) => category === "model")
-        .map(({ id }) => id)
-    );
-
+  it("names a variable that unlocks every one of them", () => {
     for (const provider of MODEL_PROVIDERS) {
-      expect(connectable.has(provider.id)).toBe(true);
+      expect(VARIABLE_CREDENTIALS[provider.id]?.fields[0]?.variable).toMatch(
+        API_KEY_NAME
+      );
     }
   });
 

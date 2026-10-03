@@ -23,6 +23,7 @@ export const evalHarnessProfile = pgTable(
     env: jsonb("env").$type<Record<string, string>>(),
     install: text("install"),
     run: text("run"),
+    variables: jsonb("variables").$type<string[]>(),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .defaultNow(),

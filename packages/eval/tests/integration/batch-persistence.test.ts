@@ -45,6 +45,7 @@ const codexOnly = Layer.succeed(
             new CredentialError({ code: "not-found", message: "not connected" })
           ),
     resolveBound: () => Effect.succeed(codexCredential),
+    variables: () => Effect.die("unused"),
   })
 );
 

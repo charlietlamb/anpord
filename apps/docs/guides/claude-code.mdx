@@ -1,16 +1,18 @@
 ---
 title: "Run Claude Code evals"
-description: "Connect Claude once, check one trial, then compare models"
+description: "Set your Anthropic key once, check one trial, then compare models"
 ---
 
 Sphynx runs the real Claude Code CLI in a sandbox. You don't install Claude locally or write an authentication script.
 
-## Connect Claude
+## Set your Anthropic key
 
 1. Select the organization that will own the evals.
-2. Open **Settings > Harnesses > Add harness** and choose **Claude Code**.
-3. Enter an Anthropic API key and choose **Everyone in the organization**, so CLI, SDK and CI batches can use it.
-4. Save it. From the connection's actions menu, choose **Make default** if it isn't already, then **Check it works**.
+2. Open **Settings > Environment** and choose **Add variable**.
+3. Enter `ANTHROPIC_API_KEY` with your Anthropic API key and choose **Everyone in the organization**, so CLI, SDK and CI batches can use it.
+4. Save it.
+
+From a terminal, `sphynx env set ANTHROPIC_API_KEY` does the same.
 
 The key stays in Sphynx. A local Claude login or Claude subscription does not authenticate these trials: Sphynx uses [Claude Code's bare mode](https://code.claude.com/docs/en/headless#start-faster-with-bare-mode), which requires API credentials.
 
@@ -41,7 +43,7 @@ export default suite({
 npx sphynx-sh eval ./claude.eval.ts
 ```
 
-This starts a batch with one run: the one case on the one variant, with one trial. A passing trial confirms the connection, the Claude install, its file tools and your check. Open the printed batch link to see the commands and output. One trial says nothing about how reliably the case passes.
+This starts a batch with one run: the one case on the one variant, with one trial. A passing trial confirms the key, the Claude install, its file tools and your check. Open the printed batch link to see the commands and output. One trial says nothing about how reliably the case passes.
 
 ## Compare models
 
@@ -63,9 +65,9 @@ A batch is capped at 100 trials (cases x variants x trials). Split a larger grid
 
 ## If setup fails
 
-- **Missing Claude credential:** check the organization, that the connection is shared with everyone, and that it is the default.
-- **Authentication rejected:** rotate the Anthropic key and check it again.
+- **Set ANTHROPIC_API_KEY in Settings > Environment to run claude:** check the organization, and that the key is set for everyone in it.
+- **Authentication rejected:** set `ANTHROPIC_API_KEY` again with a working key.
 - **Model unavailable:** check the exact ID and your account's access.
-- **Works locally but fails in CI:** an API key uses the organization's connections, not your personal connection or local login.
+- **Works locally but fails in CI:** an API key uses the organization's values, not your personal ones or your local login.
 
 Compiling the suite or passing local mock tests does not prove a hosted Claude trial works. Check one trial's result before growing the grid.

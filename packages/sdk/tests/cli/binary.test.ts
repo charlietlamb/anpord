@@ -37,7 +37,7 @@ describe.if(built)("the published binary", () => {
     "help names every command, so the surface is discoverable",
     async () => {
       const { code, stdout } = await run(["--help"]);
-      for (const command of ["eval", "connectors"]) {
+      for (const command of ["eval", "env"]) {
         expect(stdout).toContain(command);
       }
       for (const command of ["promote", "push", "versions"]) {
@@ -137,7 +137,7 @@ export default suite({
   test(
     "a failure leaves stdout empty, so output can be redirected",
     async () => {
-      const { code, stderr, stdout } = await run(["connectors", "list"]);
+      const { code, stderr, stdout } = await run(["env", "list"]);
       expect(stdout).toBe("");
       expect(stderr).toContain("SPHYNX_API_KEY");
       expect(code).toBe(1);
@@ -146,7 +146,7 @@ export default suite({
   );
 
   test("a failure reports one line rather than a stack trace", async () => {
-    const { stderr } = await run(["connectors", "list"]);
+    const { stderr } = await run(["env", "list"]);
     expect(stderr.trimEnd().split("\n")).toHaveLength(1);
     expect(stderr).not.toContain("node_modules");
   });

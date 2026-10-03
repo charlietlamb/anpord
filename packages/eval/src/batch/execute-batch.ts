@@ -25,13 +25,10 @@ export const makeExecuteBatch = Effect.gen(function* () {
 
   const credentialsFor = (organizationId: string, plan: RunPlan) =>
     Effect.gen(function* () {
-      const bound = (connectionId: string) =>
-        credentials.resolveBound({ connectionId, organizationId });
+      const keyless = KEYLESS_HARNESSES.has(plan.harness);
+      const harnessRef = plan.harnessCredentialRef;
 
-      if (
-        plan.harnessCredentialConnectionId === null &&
-        !KEYLESS_HARNESSES.has(plan.harness)
-      ) {
+      if (harnessRef === null && !keyless) {
         return yield* new CredentialError({
           code: "not-found",
           message: `No credential is bound to ${plan.harness}`,
@@ -39,16 +36,34 @@ export const makeExecuteBatch = Effect.gen(function* () {
       }
 
       const harness =
-        plan.harnessCredentialConnectionId === null
+        keyless || harnessRef === null
           ? unkeyed()
-          : yield* bound(plan.harnessCredentialConnectionId);
+          : yield* credentials.resolveBound({
+              credentialRef: harnessRef,
+              integrationId: plan.harness,
+              organizationId,
+            });
 
       const sandbox =
-        plan.sandboxCredentialConnectionId === null
+        plan.sandboxCredentialRef === null
           ? undefined
-          : yield* bound(plan.sandboxCredentialConnectionId);
+          : yield* credentials.resolveBound({
+              credentialRef: plan.sandboxCredentialRef,
+              integrationId: plan.sandbox,
+              organizationId,
+            });
 
-      return { harness, sandbox } satisfies TrialCredentials;
+      const names = plan.profile?.variables ?? [];
+      const variables =
+        names.length === 0 || harnessRef === null
+          ? undefined
+          : yield* credentials.variables({
+              credentialRef: harnessRef,
+              names,
+              organizationId,
+            });
+
+      return { harness, sandbox, variables } satisfies TrialCredentials;
     });
 
   const runOne = (

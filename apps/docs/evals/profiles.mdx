@@ -50,6 +50,7 @@ Files outside those two directories are ignored unless the manifest names them, 
 {
   "systemPrompt": "system.md",
   "env": { "DOCS_BASE_URL": "https://example.com" },
+  "variables": ["SEARCH_API_KEY"],
   "install": "pip install -r requirements.txt",
   "run": "python run.py"
 }
@@ -58,7 +59,8 @@ Files outside those two directories are ignored unless the manifest names them, 
 | Key | Meaning |
 | --- | --- |
 | `systemPrompt` | The agent's system prompt. See [System prompts](#system-prompts) |
-| `env` | Environment variables for every process the trial starts. Never secrets |
+| `env` | Literal environment variables for every process the trial starts. Never secrets |
+| `variables` | Names from [Settings > Environment](/environment) the trial gets. See [secrets](#secrets) |
 | `install` | A command run once while the sandbox is prepared. Any harness |
 | `run` | The command that starts your process. [Command harness](/evals/command-harness) only, and required there |
 
@@ -68,10 +70,20 @@ If `systemPrompt`, `install` or `run` names a file inside the profile directory,
 
 <Warning>
   Never put a key in `env`. A profile is committed beside the eval file, stored
-  unencrypted and readable by anyone who can read its runs. Provider keys
-  belong in an `env` credential, which is sealed, injected at run time, and
-  overrides any profile variable with the same name.
+  unencrypted and readable by anyone who can read its runs.
 </Warning>
+
+## Secrets
+
+Set a secret in [Settings > Environment](/environment), then name it in `variables`. The profile holds only the name. The value reaches the profile's process, the install command, the case's prepare step and code checks.
+
+A hosted batch whose profile names a variable that is not set is refused before it starts:
+
+```text
+A profile names variables that are not set. Set SEARCH_API_KEY in Settings > Environment.
+```
+
+A built-in harness picks up its own key, such as `ANTHROPIC_API_KEY` for `claude`, so you don't name it. A [command harness](/evals/command-harness) gets only what its profile names.
 
 ## Limits
 

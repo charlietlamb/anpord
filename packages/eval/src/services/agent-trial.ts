@@ -27,7 +27,7 @@ import {
   Effect,
   Layer,
   Option,
-  type Redacted,
+  Redacted,
   Ref,
   Stream,
 } from "effect";
@@ -101,6 +101,7 @@ export interface AgentTrialRequest {
   readonly user?: EvalUser | null;
 
   readonly validator?: EvalValidator | null;
+  readonly variables?: Redacted.Redacted<Readonly<Record<string, string>>>;
   readonly verifyCommand: string | null;
   readonly workspace: string;
 }
@@ -173,6 +174,12 @@ export const AgentTrialLive = Layer.effect(
       Effect.gen(function* () {
         const startedAt = yield* Clock.currentTimeMillis;
         const secrets = trialSecrets(request);
+        const reach = {
+          ...request.forwarded,
+          ...(request.variables === undefined
+            ? {}
+            : Redacted.value(request.variables)),
+        };
 
         yield* destroyPrior(request);
 
@@ -196,7 +203,7 @@ export const AgentTrialLive = Layer.effect(
           caseCache: request.caseCache,
           credential: request.harnessCredential,
           driver,
-          forwarded: request.forwarded ?? {},
+          forwarded: reach,
           harness: request.harness,
           harnessVersion: request.harnessVersion,
           home: sandbox.home,
@@ -324,7 +331,7 @@ export const AgentTrialLive = Layer.effect(
         const scored = yield* scorer.score({
           onValidation: request.onValidation,
           commandCount: commandsIn(events),
-          env: request.forwarded,
+          env: reach,
           events,
           modelMs: modelFinished - modelStarted,
           sandbox,

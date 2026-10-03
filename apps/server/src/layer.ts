@@ -14,8 +14,9 @@ import { BatchSubscriptionsTrigger } from "@sphynx/eval/adapters/runner/trigger-
 import { CodebaseConnectionLive } from "@sphynx/eval/codebase/codebase-connection";
 import { GithubRepositoriesLive } from "@sphynx/eval/codebase/github-repositories";
 import { CredentialCipherLive } from "@sphynx/eval/credentials/cipher";
-import { CredentialConnectionsLive } from "@sphynx/eval/credentials/connections";
 import { DeviceAuthLive } from "@sphynx/eval/credentials/device-auth";
+import { SubscriptionsLive } from "@sphynx/eval/credentials/subscriptions";
+import { EnvironmentVariablesLive } from "@sphynx/eval/environment/environment-variables";
 import {
   EvalCodebaseLive,
   EvalCredentialsLive,
@@ -62,14 +63,15 @@ const CredentialDependencies = Layer.mergeAll(
   DatabaseLayer,
   IdGeneratorLive
 );
-const CredentialConnectionsLayer = CredentialConnectionsLive.pipe(
+const SubscriptionsLayer = SubscriptionsLive.pipe(
   Layer.provide(CredentialDependencies)
 );
 const CredentialLayer = Layer.mergeAll(
-  CredentialConnectionsLayer,
+  SubscriptionsLayer,
+  EnvironmentVariablesLive.pipe(Layer.provide(CredentialDependencies)),
   EvalCredentialsLive.pipe(Layer.provide(DatabaseLayer)),
   DeviceAuthLive.pipe(
-    Layer.provide(CredentialConnectionsLayer),
+    Layer.provide(SubscriptionsLayer),
     Layer.provide(CredentialDependencies)
   )
 );

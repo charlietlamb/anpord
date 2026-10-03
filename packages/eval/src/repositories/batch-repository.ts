@@ -16,11 +16,11 @@ const UNREPORTED = "not recorded: the machine running this never reported it";
 
 interface NewRun {
   readonly caseVersionInternalId: string;
-  readonly harnessCredentialConnectionId: string | null;
+  readonly harnessCredentialRef: string | null;
   readonly harnessCredentialRevision: number | null;
   readonly harnessVersion: string;
   readonly profileInternalId: string | null;
-  readonly sandboxCredentialConnectionId: string | null;
+  readonly sandboxCredentialRef: string | null;
   readonly sandboxCredentialRevision: number | null;
   readonly trialCount: number;
   readonly variantInternalId: string;

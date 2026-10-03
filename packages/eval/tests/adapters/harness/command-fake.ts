@@ -18,6 +18,7 @@ export const profile = (
   name: "sample",
   run: "./agent.sh",
   systemPrompt: null,
+  variables: null,
   ...overrides,
 });
 

@@ -202,7 +202,6 @@ export const prepareWorkspace = (
     return {
       api,
       env: profileEnv({
-        credential: input.credential,
         driverEnv,
         forwarded: input.forwarded,
         home: input.home,

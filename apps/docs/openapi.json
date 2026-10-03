@@ -70,7 +70,7 @@
             }
           }
         },
-        "description": "Runs, suites, and connectors started with this credential land in this organization.",
+        "description": "Runs, suites, and variables set with this credential land in this organization.",
         "summary": "Show which organization a credential uses",
         "requestBody": {
           "content": {
@@ -84,12 +84,97 @@
         }
       }
     },
-    "/v1/connectors.integrations": {
+    "/v1/environment.list": {
       "post": {
         "tags": [
-          "Connectors"
+          "Environment"
         ],
-        "operationId": "connectors.integrations",
+        "operationId": "environment.list",
+        "parameters": [],
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "EnvironmentListing",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EnvironmentListing"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The request did not match the expected schema",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/HttpApiDecodeError"
+                    },
+                    {
+                      "$ref": "#/components/schemas/BadRequest"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Unauthorized"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Forbidden"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "NotFound",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotFound"
+                }
+              }
+            }
+          }
+        },
+        "description": "Secret values are never returned, only a preview.",
+        "summary": "List variables and subscriptions",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ListEnvironmentRequest"
+              }
+            }
+          },
+          "required": true
+        }
+      }
+    },
+    "/v1/environment.set": {
+      "post": {
+        "tags": [
+          "Environment"
+        ],
+        "operationId": "environment.set",
         "parameters": [],
         "security": [
           {
@@ -104,89 +189,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "type": "object",
-                    "required": [
-                      "authMethods",
-                      "category",
-                      "id",
-                      "label"
-                    ],
-                    "properties": {
-                      "authMethods": {
-                        "type": "array",
-                        "items": {
-                          "type": "object",
-                          "required": [
-                            "fields",
-                            "id",
-                            "kind",
-                            "label"
-                          ],
-                          "properties": {
-                            "fields": {
-                              "type": "array",
-                              "items": {
-                                "type": "object",
-                                "required": [
-                                  "label",
-                                  "name",
-                                  "required",
-                                  "secret"
-                                ],
-                                "properties": {
-                                  "hint": {
-                                    "type": "string"
-                                  },
-                                  "label": {
-                                    "type": "string"
-                                  },
-                                  "name": {
-                                    "type": "string"
-                                  },
-                                  "required": {
-                                    "type": "boolean"
-                                  },
-                                  "secret": {
-                                    "type": "boolean"
-                                  }
-                                },
-                                "additionalProperties": false
-                              }
-                            },
-                            "id": {
-                              "type": "string"
-                            },
-                            "kind": {
-                              "type": "string",
-                              "enum": [
-                                "secret",
-                                "device",
-                                "env"
-                              ]
-                            },
-                            "label": {
-                              "type": "string"
-                            }
-                          },
-                          "additionalProperties": false
-                        }
-                      },
-                      "category": {
-                        "type": "string",
-                        "enum": [
-                          "harness",
-                          "model",
-                          "sandbox"
-                        ]
-                      },
-                      "id": {
-                        "type": "string"
-                      },
-                      "label": {
-                        "type": "string"
-                      }
-                    },
-                    "additionalProperties": false
+                    "$ref": "#/components/schemas/EnvironmentVariable"
                   }
                 }
               }
@@ -240,13 +243,12 @@
             }
           }
         },
-        "description": "Each integration states the auth methods it accepts and the fields each one needs.",
-        "summary": "List the integrations that can be connected",
+        "summary": "Set variables",
         "requestBody": {
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/ListConnectorsRequest"
+                "$ref": "#/components/schemas/SetVariablesRequest"
               }
             }
           },
@@ -254,297 +256,12 @@
         }
       }
     },
-    "/v1/connectors.list": {
+    "/v1/environment.remove": {
       "post": {
         "tags": [
-          "Connectors"
+          "Environment"
         ],
-        "operationId": "connectors.list",
-        "parameters": [],
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Success",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "type": "object",
-                    "required": [
-                      "authMethodId",
-                      "createdAt",
-                      "id",
-                      "integrationId",
-                      "isDefault",
-                      "lastUsedAt",
-                      "name",
-                      "scope",
-                      "status"
-                    ],
-                    "properties": {
-                      "authMethodId": {
-                        "type": "string"
-                      },
-                      "createdAt": {
-                        "$ref": "#/components/schemas/DateTimeUtc"
-                      },
-                      "id": {
-                        "type": "string"
-                      },
-                      "integrationId": {
-                        "type": "string"
-                      },
-                      "isDefault": {
-                        "type": "boolean"
-                      },
-                      "lastUsedAt": {
-                        "anyOf": [
-                          {
-                            "$ref": "#/components/schemas/DateTimeUtc"
-                          },
-                          {
-                            "type": "null"
-                          }
-                        ]
-                      },
-                      "name": {
-                        "type": "string"
-                      },
-                      "scope": {
-                        "type": "string",
-                        "enum": [
-                          "organization",
-                          "personal"
-                        ]
-                      },
-                      "status": {
-                        "type": "string",
-                        "enum": [
-                          "active",
-                          "invalid"
-                        ]
-                      }
-                    },
-                    "additionalProperties": false
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "The request did not match the expected schema",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "anyOf": [
-                    {
-                      "$ref": "#/components/schemas/HttpApiDecodeError"
-                    },
-                    {
-                      "$ref": "#/components/schemas/BadRequest"
-                    }
-                  ]
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Unauthorized",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Unauthorized"
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "Forbidden",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Forbidden"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "NotFound",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/NotFound"
-                }
-              }
-            }
-          }
-        },
-        "description": "The stored secret is never returned, only that a connection exists.",
-        "summary": "List connected integrations",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ListConnectorsRequest"
-              }
-            }
-          },
-          "required": true
-        }
-      }
-    },
-    "/v1/connectors.add": {
-      "post": {
-        "tags": [
-          "Connectors"
-        ],
-        "operationId": "connectors.add",
-        "parameters": [],
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Success",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "required": [
-                    "authMethodId",
-                    "createdAt",
-                    "id",
-                    "integrationId",
-                    "isDefault",
-                    "lastUsedAt",
-                    "name",
-                    "scope",
-                    "status"
-                  ],
-                  "properties": {
-                    "authMethodId": {
-                      "type": "string"
-                    },
-                    "createdAt": {
-                      "$ref": "#/components/schemas/DateTimeUtc"
-                    },
-                    "id": {
-                      "type": "string"
-                    },
-                    "integrationId": {
-                      "type": "string"
-                    },
-                    "isDefault": {
-                      "type": "boolean"
-                    },
-                    "lastUsedAt": {
-                      "anyOf": [
-                        {
-                          "$ref": "#/components/schemas/DateTimeUtc"
-                        },
-                        {
-                          "type": "null"
-                        }
-                      ]
-                    },
-                    "name": {
-                      "type": "string"
-                    },
-                    "scope": {
-                      "type": "string",
-                      "enum": [
-                        "organization",
-                        "personal"
-                      ]
-                    },
-                    "status": {
-                      "type": "string",
-                      "enum": [
-                        "active",
-                        "invalid"
-                      ]
-                    }
-                  },
-                  "additionalProperties": false
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "The request did not match the expected schema",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "anyOf": [
-                    {
-                      "$ref": "#/components/schemas/HttpApiDecodeError"
-                    },
-                    {
-                      "$ref": "#/components/schemas/BadRequest"
-                    }
-                  ]
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Unauthorized",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Unauthorized"
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "Forbidden",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Forbidden"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "NotFound",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/NotFound"
-                }
-              }
-            }
-          }
-        },
-        "description": "Values are encrypted on arrival. The response states the connection without them.",
-        "summary": "Connect an integration",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/AddConnectorRequest"
-              }
-            }
-          },
-          "required": true
-        }
-      }
-    },
-    "/v1/connectors.remove": {
-      "post": {
-        "tags": [
-          "Connectors"
-        ],
-        "operationId": "connectors.remove",
+        "operationId": "environment.remove",
         "parameters": [],
         "security": [
           {
@@ -603,12 +320,12 @@
             }
           }
         },
-        "summary": "Remove a connector",
+        "summary": "Remove a variable",
         "requestBody": {
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/RemoveConnectorRequest"
+                "$ref": "#/components/schemas/RemoveVariableRequest"
               }
             }
           },
@@ -2454,7 +2171,7 @@
         },
         "additionalProperties": false
       },
-      "ListConnectorsRequest": {
+      "ListEnvironmentRequest": {
         "$id": "/schemas/%7B%7D",
         "anyOf": [
           {
@@ -2464,7 +2181,151 @@
             "type": "array"
           }
         ],
-        "description": "List the connectors this organization has."
+        "description": "List the variables and subscriptions this organization has."
+      },
+      "EnvironmentListing": {
+        "type": "object",
+        "required": [
+          "subscriptions",
+          "variables"
+        ],
+        "properties": {
+          "subscriptions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Subscription"
+            }
+          },
+          "variables": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/EnvironmentVariable"
+            }
+          }
+        },
+        "additionalProperties": false
+      },
+      "Subscription": {
+        "type": "object",
+        "required": [
+          "createdAt",
+          "id",
+          "lastUsedAt",
+          "plan",
+          "renews",
+          "scope",
+          "status"
+        ],
+        "properties": {
+          "createdAt": {
+            "$ref": "#/components/schemas/DateTimeUtc"
+          },
+          "id": {
+            "type": "string"
+          },
+          "lastUsedAt": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/DateTimeUtc"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "plan": {
+            "type": "string",
+            "enum": [
+              "chatgpt",
+              "opencode",
+              "pi"
+            ]
+          },
+          "renews": {
+            "type": "boolean"
+          },
+          "scope": {
+            "type": "string",
+            "enum": [
+              "organization",
+              "personal"
+            ]
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "active",
+              "invalid"
+            ]
+          }
+        },
+        "additionalProperties": false,
+        "description": "A plan an agent signs in with. Its token is never returned."
+      },
+      "DateTimeUtc": {
+        "type": "string",
+        "description": "a string to be decoded into a DateTime.Utc"
+      },
+      "EnvironmentVariable": {
+        "type": "object",
+        "required": [
+          "createdAt",
+          "id",
+          "lastUsedAt",
+          "name",
+          "preview",
+          "revision",
+          "scope",
+          "secret",
+          "updatedAt"
+        ],
+        "properties": {
+          "createdAt": {
+            "$ref": "#/components/schemas/DateTimeUtc"
+          },
+          "id": {
+            "type": "string"
+          },
+          "lastUsedAt": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/DateTimeUtc"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "name": {
+            "type": "string"
+          },
+          "preview": {
+            "type": "string"
+          },
+          "revision": {
+            "$ref": "#/components/schemas/Int"
+          },
+          "scope": {
+            "type": "string",
+            "enum": [
+              "organization",
+              "personal"
+            ]
+          },
+          "secret": {
+            "type": "boolean"
+          },
+          "updatedAt": {
+            "$ref": "#/components/schemas/DateTimeUtc"
+          }
+        },
+        "additionalProperties": false,
+        "description": "A variable runs read. Secret values are never returned."
+      },
+      "Int": {
+        "type": "integer",
+        "description": "an integer",
+        "title": "int"
       },
       "BadRequest": {
         "type": "object",
@@ -2504,41 +2365,12 @@
         },
         "additionalProperties": false
       },
-      "DateTimeUtc": {
-        "type": "string",
-        "description": "a string to be decoded into a DateTime.Utc"
-      },
-      "AddConnectorRequest": {
+      "SetVariablesRequest": {
         "type": "object",
         "required": [
-          "authMethodId",
-          "integrationId",
-          "name",
-          "values"
+          "variables"
         ],
         "properties": {
-          "authMethodId": {
-            "type": "string",
-            "description": "a string at least 1 character(s) long",
-            "title": "minLength(1)",
-            "minLength": 1
-          },
-          "integrationId": {
-            "type": "string",
-            "description": "a string at least 1 character(s) long",
-            "title": "minLength(1)",
-            "minLength": 1
-          },
-          "isDefault": {
-            "type": "boolean"
-          },
-          "name": {
-            "type": "string",
-            "description": "a string at most 80 character(s) long",
-            "title": "maxLength(80)",
-            "minLength": 1,
-            "maxLength": 80
-          },
           "scope": {
             "type": "string",
             "enum": [
@@ -2546,33 +2378,67 @@
               "personal"
             ]
           },
-          "values": {
-            "type": "object",
-            "required": [],
-            "properties": {},
-            "additionalProperties": {
-              "type": "string"
-            }
+          "variables": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "name",
+                "value"
+              ],
+              "properties": {
+                "name": {
+                  "type": "string",
+                  "description": "a string at most 128 character(s) long",
+                  "pattern": "^[A-Z_][A-Z0-9_]*$",
+                  "title": "maxLength(128)",
+                  "maxLength": 128
+                },
+                "secret": {
+                  "type": "boolean"
+                },
+                "value": {
+                  "type": "string",
+                  "description": "a string at most 32768 character(s) long",
+                  "title": "maxLength(32768)",
+                  "minLength": 1,
+                  "maxLength": 32768
+                }
+              },
+              "additionalProperties": false
+            },
+            "description": "an array of at most 100 item(s)",
+            "title": "maxItems(100)",
+            "minItems": 1,
+            "maxItems": 100
           }
         },
         "additionalProperties": false,
-        "description": "Connect an integration. The values are encrypted on arrival and never read back."
+        "description": "Set variables. A name that already exists is replaced. Values are encrypted on arrival and never read back."
       },
-      "RemoveConnectorRequest": {
+      "RemoveVariableRequest": {
         "type": "object",
         "required": [
-          "id"
+          "name"
         ],
         "properties": {
-          "id": {
+          "name": {
             "type": "string",
-            "description": "a string at least 1 character(s) long",
-            "title": "minLength(1)",
-            "minLength": 1
+            "description": "a string at most 128 character(s) long",
+            "pattern": "^[A-Z_][A-Z0-9_]*$",
+            "title": "maxLength(128)",
+            "maxLength": 128
+          },
+          "scope": {
+            "type": "string",
+            "enum": [
+              "organization",
+              "personal"
+            ]
           }
         },
         "additionalProperties": false,
-        "description": "Remove a connector by its id."
+        "description": "Remove a variable by its name."
       },
       "SuiteBatchRequest": {
         "type": "object",
@@ -3461,11 +3327,6 @@
         "title": "int",
         "minimum": 0
       },
-      "Int": {
-        "type": "integer",
-        "description": "an integer",
-        "title": "int"
-      },
       "EvalVerify": {
         "type": "string",
         "description": "The shell command that decides whether a trial passed.",
@@ -3540,10 +3401,10 @@
             "type": "object",
             "required": [],
             "properties": {
-              "harnessConnectionId": {
+              "harnessRef": {
                 "type": "string"
               },
-              "sandboxConnectionId": {
+              "sandboxRef": {
                 "type": "string"
               }
             },
@@ -3634,6 +3495,16 @@
           },
           "systemPrompt": {
             "type": "string"
+          },
+          "variables": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "description": "a string at most 128 character(s) long",
+              "pattern": "^[A-Z_][A-Z0-9_]*$",
+              "title": "maxLength(128)",
+              "maxLength": 128
+            }
           }
         },
         "additionalProperties": false,
@@ -6299,8 +6170,8 @@
       "description": "Check the credential a client is using before it starts work."
     },
     {
-      "name": "Connectors",
-      "description": "Connect the credentials an eval run needs: a harness to drive, a sandbox to run in, and a model to play a case's human."
+      "name": "Environment",
+      "description": "The keys and subscriptions eval runs use. Known names such as ANTHROPIC_API_KEY run the matching harness, judge or sandbox; other names reach a run when its profile names them."
     },
     {
       "name": "Batches",

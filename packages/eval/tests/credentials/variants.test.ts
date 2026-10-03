@@ -1,5 +1,6 @@
 import { describe, expect, it } from "bun:test";
 import { Effect, Redacted } from "effect";
+import { variablesRef } from "../../src/credentials/credential-ref";
 import { CredentialError } from "../../src/credentials/errors";
 import type {
   CredentialResolverShape,
@@ -11,6 +12,7 @@ import {
   KEYLESS_HARNESSES,
   unkeyed,
 } from "../../src/credentials/variants";
+import { ownerOf } from "../../src/environment/variable-repository";
 import { actorOf } from "../fixtures/eval-stack";
 
 const actor = actorOf("organization", true);
@@ -22,7 +24,7 @@ const resolved = (input: ResolveCredential, revision: number) =>
   Effect.succeed(
     Redacted.make({
       authMethodId: "api-key",
-      connectionId: input.connectionId ?? `default-${input.integrationId}`,
+      connectionId: input.credentialRef ?? `default-${input.integrationId}`,
       integrationId: input.integrationId,
       revision,
       values: { apiKey: "secret" },
@@ -35,6 +37,7 @@ const resolverOf = (
   persist: () => Effect.void,
   resolve,
   resolveBound: notFound,
+  variables: notFound,
 });
 
 const connected = (integrations: readonly string[], revision = 3) =>
@@ -64,9 +67,9 @@ describe("binding credentials to variants", () => {
     const [bound] = await bind(connected(["codex", "daytona"]), [variant]);
 
     expect(bound).toEqual({
-      harnessCredentialConnectionId: "default-codex",
+      harnessCredentialRef: "default-codex",
       harnessCredentialRevision: 3,
-      sandboxCredentialConnectionId: "default-daytona",
+      sandboxCredentialRef: "default-daytona",
       sandboxCredentialRevision: 3,
     });
   });
@@ -76,14 +79,14 @@ describe("binding credentials to variants", () => {
       {
         ...variant,
         credentials: {
-          harnessConnectionId: "harness",
-          sandboxConnectionId: "sandbox",
+          harnessRef: "harness",
+          sandboxRef: "sandbox",
         },
       },
     ]);
 
-    expect(bound?.harnessCredentialConnectionId).toBe("harness");
-    expect(bound?.sandboxCredentialConnectionId).toBe("sandbox");
+    expect(bound?.harnessCredentialRef).toBe("harness");
+    expect(bound?.sandboxCredentialRef).toBe("sandbox");
   });
 
   it("binds each variant on its own", async () => {
@@ -92,23 +95,14 @@ describe("binding credentials to variants", () => {
       { harness: "claude", sandbox: "e2b" },
     ]);
 
-    expect(bound.map((entry) => entry.harnessCredentialConnectionId)).toEqual([
+    expect(bound.map((entry) => entry.harnessCredentialRef)).toEqual([
       "default-codex",
       "default-claude",
     ]);
-    expect(bound.map((entry) => entry.sandboxCredentialConnectionId)).toEqual([
+    expect(bound.map((entry) => entry.sandboxCredentialRef)).toEqual([
       null,
       "default-e2b",
     ]);
-  });
-
-  it("falls back to an env connection when the harness has none", async () => {
-    const [bound] = await bind(connected(["env"]), [
-      { harness: "opencode", sandbox: "daytona" },
-    ]);
-
-    expect(bound?.harnessCredentialConnectionId).toBe("default-env");
-    expect(bound?.sandboxCredentialConnectionId).toBeNull();
   });
 
   it("refuses a keyed harness with no credential at all", async () => {
@@ -117,18 +111,18 @@ describe("binding credentials to variants", () => {
     ]);
 
     expect(failure.code).toBe("not-found");
-    expect(failure.message).toBe("No credential configured for claude");
+    expect(failure.message).toBe("not found");
   });
 
-  it("lets a keyless command harness run with nothing bound", async () => {
+  it("binds a keyless command harness to the starter's variables", async () => {
     const [bound] = await bind(connected([]), [
       { harness: "command", sandbox: "daytona" },
     ]);
 
     expect(bound).toEqual({
-      harnessCredentialConnectionId: null,
+      harnessCredentialRef: variablesRef(ownerOf(actor)),
       harnessCredentialRevision: null,
-      sandboxCredentialConnectionId: null,
+      sandboxCredentialRef: null,
       sandboxCredentialRevision: null,
     });
   });
@@ -136,14 +130,14 @@ describe("binding credentials to variants", () => {
   it("stores no binding for a local credential that has no stored revision", async () => {
     const [bound] = await bind(connected(["codex", "daytona"], 0), [variant]);
 
-    expect(bound?.harnessCredentialConnectionId).toBeNull();
+    expect(bound?.harnessCredentialRef).toBeNull();
     expect(bound?.harnessCredentialRevision).toBeNull();
-    expect(bound?.sandboxCredentialConnectionId).toBeNull();
+    expect(bound?.sandboxCredentialRef).toBeNull();
   });
 
   it("does not hide an explicit harness binding that is gone", async () => {
     const failure = await refusal(connected([]), [
-      { ...variant, credentials: { harnessConnectionId: "removed" } },
+      { ...variant, credentials: { harnessRef: "removed" } },
     ]);
 
     expect(failure.code).toBe("not-found");
@@ -151,7 +145,7 @@ describe("binding credentials to variants", () => {
 
   it("does not hide an explicit sandbox binding that is gone", async () => {
     const failure = await refusal(connected(["codex"]), [
-      { ...variant, credentials: { sandboxConnectionId: "removed" } },
+      { ...variant, credentials: { sandboxRef: "removed" } },
     ]);
 
     expect(failure.code).toBe("not-found");
@@ -182,9 +176,9 @@ describe("the keyless credential", () => {
 
   it("carries no values and no stored revision", () => {
     expect(Redacted.value(unkeyed())).toEqual({
-      authMethodId: "env",
-      connectionId: "env-none",
-      integrationId: "env",
+      authMethodId: "none",
+      connectionId: "none",
+      integrationId: "none",
       revision: 0,
       values: {},
     });

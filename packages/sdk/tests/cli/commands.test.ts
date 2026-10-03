@@ -9,14 +9,14 @@ const EVAL_COMMANDS: Record<string, readonly string[]> = {
   "cases.get": [],
   "cases.list": [],
   "cases.run": [],
-  "connectors.add": ["connectors"],
-  "connectors.integrations": [],
-  "connectors.list": [],
-  "connectors.remove": [],
+  "environment.list": ["env"],
+  "environment.remove": [],
+  "environment.set": [],
   "models.list": [],
   "runner.beat": [],
   "runner.finish": [],
   "runner.lease": [],
+  "runner.leaseVariables": [],
   "runner.report": [],
   "runner.start": ["eval"],
   "runner.subscribe": [],
@@ -45,7 +45,7 @@ describe("coverage", () => {
     ).toEqual(apiOperations());
   });
 
-  test("with prompts off, only eval and connector commands exist", () => {
+  test("with prompts off, only eval and environment commands exist", () => {
     expect(commandNames(false)).toEqual(mapped(EVAL_COMMANDS));
   });
 

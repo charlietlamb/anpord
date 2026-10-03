@@ -7,7 +7,6 @@ import {
   timestamp,
   uniqueIndex,
 } from "drizzle-orm/pg-core";
-import { credentialConnection } from "../credentials/connections";
 import { evalBatch } from "./eval-batches";
 import { evalCaseVersion } from "./eval-case-versions";
 import { evalHarnessProfile } from "./eval-harness-profiles";
@@ -31,13 +30,9 @@ export const evalRun = pgTable(
       { onDelete: "restrict" }
     ),
     harnessVersion: text("harness_version").notNull(),
-    harnessCredentialConnectionId: text(
-      "harness_credential_connection_id"
-    ).references(() => credentialConnection.id, { onDelete: "set null" }),
+    harnessCredentialRef: text("harness_credential_connection_id"),
     harnessCredentialRevision: integer("harness_credential_revision"),
-    sandboxCredentialConnectionId: text(
-      "sandbox_credential_connection_id"
-    ).references(() => credentialConnection.id, { onDelete: "set null" }),
+    sandboxCredentialRef: text("sandbox_credential_connection_id"),
     sandboxCredentialRevision: integer("sandbox_credential_revision"),
     trialCount: integer("trial_count").notNull(),
     status: text("status").notNull(),
@@ -57,10 +52,10 @@ export const evalRun = pgTable(
       table.caseVersionInternalId
     ),
     index("eval_run_harness_credential_connection_id_idx").on(
-      table.harnessCredentialConnectionId
+      table.harnessCredentialRef
     ),
     index("eval_run_sandbox_credential_connection_id_idx").on(
-      table.sandboxCredentialConnectionId
+      table.sandboxCredentialRef
     ),
     index("eval_run_profile_internal_id_idx")
       .on(table.profileInternalId)

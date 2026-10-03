@@ -111,7 +111,7 @@ const correctness = judge({
 });
 ```
 
-Set `validate: correctness` on a case, or combine it with code: `validate: [checkToolCalls, correctness]`. Every check must pass. A judge with `harness` uses that harness connection, including a ChatGPT sign-in for Codex. To call OpenAI directly, use `provider: "openai"` and add an OpenAI model connection.
+Set `validate: correctness` on a case, or combine it with code: `validate: [checkToolCalls, correctness]`. Every check must pass. A judge with `harness` runs on that harness's key or subscription in Settings > Environment, including a ChatGPT sign-in for Codex. To call OpenAI directly, use `provider: "openai"` and set `OPENAI_API_KEY` in Settings > Environment.
 
 See [model judges](https://docs.sphynx.sh/evals/judges) for isolation, authentication and unscored failures.
 

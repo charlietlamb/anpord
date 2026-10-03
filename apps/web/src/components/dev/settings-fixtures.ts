@@ -1,62 +1,58 @@
-import type {
-  CredentialConnection,
-  CredentialIntegration,
-} from "@sphynx/schema/domain/credentials";
+import type { Subscription } from "@sphynx/schema/domain/credentials";
+import type { EnvironmentVariable } from "@sphynx/schema/domain/environment";
 import { DateTime } from "effect";
 import type { MemberSummary } from "@/components/organization/member-row";
+import {
+  type EnvironmentRow,
+  environmentRows,
+} from "@/lib/settings/environment-rows";
 
 const NOW = Date.UTC(2026, 8, 22, 9, 0);
 const DAY = 86_400_000;
 
-export const CODEX: CredentialIntegration = {
-  authMethods: [
-    { fields: [], id: "chatgpt", kind: "device", label: "ChatGPT account" },
-    {
-      fields: [
-        {
-          hint: "sk-…",
-          label: "API key",
-          name: "apiKey",
-          required: true,
-          secret: true,
-        },
-      ],
-      id: "api-key",
-      kind: "secret",
-      label: "API key",
-    },
-  ],
-  category: "harness",
-  id: "codex",
-  label: "Codex",
-};
+const at = (daysAgo: number) => DateTime.unsafeMake(NOW - daysAgo * DAY);
 
-const connection = (
-  overrides: Partial<CredentialConnection>
-): CredentialConnection => ({
-  authMethodId: "api-key",
-  createdAt: DateTime.unsafeMake(NOW - 20 * DAY),
-  id: "con_1",
-  integrationId: "codex",
-  isDefault: false,
-  lastUsedAt: DateTime.unsafeMake(NOW - 2 * DAY),
-  name: "Team key",
+const SUBSCRIPTIONS: readonly Subscription[] = [
+  {
+    createdAt: at(20),
+    id: "sub_1",
+    lastUsedAt: at(1),
+    plan: "chatgpt",
+    renews: true,
+    scope: "organization",
+    status: "active",
+  },
+];
+
+const variable = (
+  name: string,
+  preview: string,
+  overrides: Partial<EnvironmentVariable> = {}
+): EnvironmentVariable => ({
+  createdAt: at(30),
+  id: `var_${name}`,
+  lastUsedAt: at(2),
+  name,
+  preview,
+  revision: 1,
   scope: "organization",
-  status: "active",
+  secret: true,
+  updatedAt: at(30),
   ...overrides,
 });
 
-export const CONNECTIONS = [
-  connection({ id: "con_1", isDefault: true }),
-  connection({
-    authMethodId: "chatgpt",
-    id: "con_2",
-    lastUsedAt: null,
-    name: "Charlie's ChatGPT",
-    scope: "personal",
-  }),
-  connection({ id: "con_3", name: "Old key", status: "invalid" }),
+const VARIABLES: readonly EnvironmentVariable[] = [
+  variable("ANTHROPIC_API_KEY", "sk-ant-…4f2a"),
+  variable("OPENAI_API_KEY", "sk-…9Qd1", { scope: "personal" }),
+  variable("AI_GATEWAY_API_KEY", "vck_…7c0e", { lastUsedAt: null }),
+  variable("APP_BASE_URL", "https://staging.acme.dev", { secret: false }),
+  variable("SEARCH_API_KEY", "srch_…11ab"),
 ];
+
+export const ENVIRONMENT: readonly EnvironmentRow[] = environmentRows(
+  SUBSCRIPTIONS,
+  VARIABLES
+);
 
 export const MEMBERS = [
   {

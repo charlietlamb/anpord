@@ -1,5 +1,6 @@
 import { HttpApiEndpoint, HttpApiGroup, OpenApi } from "@effect/platform";
 import { Schema } from "effect";
+import { VariableName } from "../domain/environment";
 import { BadRequest, Conflict, Forbidden, NotFound } from "../domain/errors";
 import { BatchSubscription } from "../domain/eval-batch-subscription";
 import { StartBatchRequest } from "../domain/eval-definition";
@@ -27,6 +28,7 @@ export const CredentialLeaseRequest = Schema.Struct({
 export type CredentialLeaseRequest = typeof CredentialLeaseRequest.Type;
 
 export const CredentialLease = Schema.Struct({
+  authMethodId: Schema.String,
   expiresAt: Schema.DateTimeUtc,
   values: Schema.Record({ key: Schema.String, value: Schema.String }),
 }).annotations({
@@ -35,6 +37,29 @@ export const CredentialLease = Schema.Struct({
   identifier: "CredentialLease",
 });
 export type CredentialLease = typeof CredentialLease.Type;
+
+export const VariableLeaseRequest = Schema.Struct({
+  id: Schema.String,
+  names: Schema.Array(VariableName).pipe(
+    Schema.minItems(1),
+    Schema.maxItems(100)
+  ),
+}).annotations({
+  description:
+    "Ask for the variables a profile names, for a batch the caller is executing.",
+  identifier: "VariableLeaseRequest",
+});
+export type VariableLeaseRequest = typeof VariableLeaseRequest.Type;
+
+export const VariableLease = Schema.Struct({
+  expiresAt: Schema.DateTimeUtc,
+  values: Schema.Record({ key: Schema.String, value: Schema.String }),
+}).annotations({
+  description:
+    "Variables for one batch, held in memory and never written down.",
+  identifier: "VariableLease",
+});
+export type VariableLease = typeof VariableLease.Type;
 
 const ReportedTrialFields = {
   events: Schema.Array(HarnessEvent),
@@ -113,6 +138,12 @@ export class RunnerGroup extends HttpApiGroup.make("runner")
       .annotate(Repeatable, true)
       .setPayload(CredentialLeaseRequest)
       .addSuccess(CredentialLease)
+  )
+  .add(
+    HttpApiEndpoint.post("leaseVariables", "/runner.leaseVariables")
+      .annotate(Repeatable, true)
+      .setPayload(VariableLeaseRequest)
+      .addSuccess(VariableLease)
   )
   .add(
     HttpApiEndpoint.post("report", "/runner.report")

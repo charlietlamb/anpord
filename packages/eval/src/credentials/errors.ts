@@ -8,7 +8,7 @@ export class CredentialError extends Data.TaggedError("CredentialError")<{
 export const connectionNotFound = () =>
   new CredentialError({
     code: "not-found",
-    message: "Credential connection not found",
+    message: "Subscription not found",
   });
 
 export const storeUnavailable = () =>
